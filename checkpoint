@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/leon/Desktop/irismodel.ckpt"
+all_model_checkpoint_paths: "/home/leon/Desktop/irismodel.ckpt"
