@@ -14,9 +14,10 @@ def init_weights(shape):
 	return(tf.Variable(weights))
 
 
-def forwardprop(X, w_1, w_2):
+def forwardprop(X, w_1, w_2, w_3):
 	h = tf.nn.sigmoid(tf.matmul(X, w_1))
-	yhat = tf.matmul(h, w_2)
+	h2 = tf.nn.sigmoid(tf.matmul(h, w_2))
+	yhat = tf.matmul(h2, w_3)
 	return(yhat)
 
 def get_data(filepath):
@@ -46,15 +47,17 @@ def train_save_neural_network(filepath):
 
 	x_size = train_X.shape[1]
 	h_size = 256
+	h2_size = 128
 	y_size = train_y.shape[1]
 
 	X = tf.placeholder("float", shape=[None, x_size])
 	Y = tf.placeholder("float", shape=[None, y_size])
 
 	w_1 = init_weights((x_size, h_size))
-	w_2 = init_weights((h_size, y_size))
+	w_2 = init_weights((h_size, h2_size))
+	w_3 = init_weights((h2_size, y_size))
 
-	yhat = forwardprop(X, w_1, w_2)
+	yhat = forwardprop(X, w_1, w_2, w_3)
 	predict = tf.argmax(yhat, axis=1)
 
 	cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=yhat))
