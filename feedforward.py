@@ -14,10 +14,11 @@ def init_weights(shape):
 	return(tf.Variable(weights))
 
 
-def forwardprop(X, w_1, w_2, w_3):
+def forwardprop(X, w_1, w_2, w_3, w_4):
 	h = tf.nn.sigmoid(tf.matmul(X, w_1))
 	h2 = tf.nn.sigmoid(tf.matmul(h, w_2))
-	yhat = tf.matmul(h2, w_3)
+	h3 = tf.nn.sigmoid(tf.matmul(h2, w_3))
+	yhat = tf.matmul(h3, w_4)
 	return(yhat)
 
 def get_data(filepath):
@@ -37,9 +38,20 @@ def get_data(filepath):
 		Y_dic = dict(zip(unique, list(range(len(unique)))))
 		Y = [Y_dic[x] for x in Y]
 
+	normalise_target(Y)
+
 	all_Y = np.eye(num_labels)[Y]
 
 	return(train_test_split(all_X, all_Y, test_size=0.33, random_state=RANDOM_SEED))
+
+def normalise_target(target):
+	min_ = np.min(target)
+	target -= min_
+	set_ = np.unique(sorted(target))
+	for s, i in zip(set_[1:], range(1,len(set_))):
+		if s - set_[i - 1] > 1:
+			target[target==s] = s - 1
+			return(normalise_target(target))
 
 
 def train_save_neural_network(filepath):
@@ -47,7 +59,8 @@ def train_save_neural_network(filepath):
 
 	x_size = train_X.shape[1]
 	h_size = 256
-	h2_size = 128
+	h2_size = 256
+	h3_size = 256
 	y_size = train_y.shape[1]
 
 	X = tf.placeholder("float", shape=[None, x_size])
@@ -55,9 +68,11 @@ def train_save_neural_network(filepath):
 
 	w_1 = init_weights((x_size, h_size))
 	w_2 = init_weights((h_size, h2_size))
-	w_3 = init_weights((h2_size, y_size))
+	w_3 = init_weights((h2_size, h3_size))
+	w_4 = init_weights((h3_size, y_size))
 
-	yhat = forwardprop(X, w_1, w_2, w_3)
+
+	yhat = forwardprop(X, w_1, w_2, w_3, w_4)
 	predict = tf.argmax(yhat, axis=1)
 
 	cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=yhat))
@@ -69,15 +84,16 @@ def train_save_neural_network(filepath):
 	init = tf.global_variables_initializer()
 	sess.run(init)
 
-	for epoch in range(100):
+	for epoch in range(1000):
 		for i in range(len(train_X)):
 			sess.run(update, feed_dict={X: train_X[i:i+1], Y: train_y[i:i+1]})
 
-		train_accuracy = np.mean(np.argmax(train_y, axis=1) == sess.run(predict, feed_dict={X: train_X, Y: train_y}))
+		if epoch % 20 == 0:
+			train_accuracy = np.mean(np.argmax(train_y, axis=1) == sess.run(predict, feed_dict={X: train_X, Y: train_y}))
 
-		test_accuracy = np.mean(np.argmax(test_y, axis=1) == sess.run(predict, feed_dict={X: test_X, Y: test_y}))
+			test_accuracy = np.mean(np.argmax(test_y, axis=1) == sess.run(predict, feed_dict={X: test_X, Y: test_y}))
 
-		print("Epoch = %d, train accuracy = %.2f%%, test accuracy %.2f%%" % (epoch+1, 100.*train_accuracy, 100.*test_accuracy))
+			print("Epoch = %d, train accuracy = %.2f%%, test accuracy %.2f%%" % (epoch+1, 100.*train_accuracy, 100.*test_accuracy))
 
 	save_path = saver.save(sess, filepath + "model.ckpt")
 	print("model saved in path: %s" % save_path)

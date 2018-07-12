@@ -1,2 +1,2 @@
-model_checkpoint_path: "/home/leon/Documents/projects/feedforward/irismodel.ckpt"
-all_model_checkpoint_paths: "/home/leon/Documents/projects/feedforward/irismodel.ckpt"
+model_checkpoint_path: "/home/leon/Documents/projects/feedforward/leaf.csvmodel.ckpt"
+all_model_checkpoint_paths: "/home/leon/Documents/projects/feedforward/leaf.csvmodel.ckpt"
